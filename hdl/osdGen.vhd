@@ -25,24 +25,23 @@ constant FONT_SEPARATION : integer := 1;
 constant LINE_SEPARATION : integer := 2;
 constant MAX_LETTERS : integer := 16;
 
-type t_gbahd_logo is array (0 to MAX_LETTERS-1) of integer range 0 to 38;
--- type t_pixel_grid is array (0 to 15) of std_logic_vector(7 downto 0);
--- type t_smooth is array (0 to 15) of std_logic_vector(7 downto 0);
--- type t_lines is array (0 to 15) of std_logic_vector(7 downto 0);
+type t_line is array (0 to MAX_LETTERS-1) of integer range 0 to 38;
 
 signal current_line, current_line_y : integer;
 signal current_letter, current_line_x : integer;
+signal line_letter : integer;
 signal selected_line : std_logic;
 signal alphabet_pixel : std_logic;
-
-signal gbahd_logo : t_gbahd_logo := (7, 2, 1, 8, 4, others => 0);
+ 
+signal gbahd_logo : t_line := (7, 2, 1, 8, 4, 0, 0, 0, 26, 23, 5, 14, 5, 18, 7, 25);
 
 begin    
     selected_line <= '0';
     current_line <= pixelY / (FONT_SIZE+LINE_SEPARATION);
     current_line_y <= pixelY mod (FONT_SIZE+LINE_SEPARATION);
     
-    current_letter <= gbahd_logo(pixelX / (FONT_SIZE+FONT_SEPARATION));
+    line_letter <= pixelX / (FONT_SIZE+FONT_SEPARATION);
+    current_letter <= gbahd_logo(line_letter);
     current_line_x <= pixelX mod (FONT_SIZE+FONT_SEPARATION);
     
     letter_alphabet : entity work.alphabet( rtl )
@@ -53,18 +52,5 @@ begin
         pixel => alphabet_pixel
      ); 
      
-     nextPxl <= '0' when (current_letter>=MAX_LETTERS or current_line_y >= FONT_SIZE or current_line_x >= FONT_SIZE) else alphabet_pixel;
-    
-    --process(drawOSD, pixelX, pixelY) is
-    --begin
-    --    if (drawOSD = '0' ) then
-    --        nextPxl <= '0';
-    --    else
-    --        if(pixelY = 2 or pixelY = 20 or pixelY = 40) then
-    --            nextPxl <= '1';
-    --        else 
-    --            nextPxl <= '0';
-    --        end if;
-    --    end if;
-    --end process;
+     nextPxl <= '0' when (line_letter>=MAX_LETTERS or current_line_y >= FONT_SIZE or current_line_x >= FONT_SIZE) else alphabet_pixel;
 end rtl;
