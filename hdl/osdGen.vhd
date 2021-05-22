@@ -37,8 +37,8 @@ signal alphabet_pixel, current_line_selected, next_line_selected, drawLetters : 
 signal gbahd_logo : t_line :=           (07, 02, 01, 08, 04, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00);
 signal watermark : t_line :=            (18, 01, 09, 26, 21, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00);
 signal osd_pixel_grid : t_line :=       (16, 09, 24, 05, 12, 00, 07, 18, 09, 04, 00, 00, 00, 00, 00, 37);
-signal osd_smoothing : t_line :=        (19, 13, 15, 15, 20, 08, 09, 14, 07, 00, 00, 00, 00, 00, 00, 38);
-signal osd_close : t_line :=            (24, 00, 03, 12, 15, 19, 05, 00, 13, 05, 14, 21, 00, 00, 00, 00);
+signal osd_smoothing : t_line :=        (19, 13, 15, 15, 20, 08, 09, 14, 07, 00, 00, 00, 40, 00, 00, 39);
+signal osd_close : t_line :=            (24, 00, 00, 03, 12, 15, 19, 05, 00, 13, 05, 14, 21, 00, 00, 24);
 
 begin
     drawLetters <= '1' when pixelX > 2 else '0';
@@ -46,11 +46,11 @@ begin
     osdY <= pixelY / FONT_SCALE;
     
     osd_pixel_grid(15) <= 38 when gridActive='1' else 37;
-    osd_smoothing(14) <= 
+    osd_smoothing(13) <= 
         29 when smooth2x='1' and smooth4x='0' else
         31 when smooth2x='0' and smooth4x='1' else
         14;
-    osd_smoothing(15) <= 24 when smooth2x='1' or smooth4x='1' else 15;
+    osd_smoothing(14) <= 24 when smooth2x='1' or smooth4x='1' else 15;
     
     selected_line <= 1;
     current_line <= osdY / (FONT_SIZE+LINE_SEPARATION);

@@ -61,6 +61,8 @@ begin
             when 36 => letter_data <= "1111110000111111000111111"; -- 9
             when 37 => letter_data <= "1111110001100011000111111"; -- OFF
             when 38 => letter_data <= "1111111111111111111111111"; -- ON
+            when 39 => letter_data <= "0001000100010000010000010"; -- >
+            when 40 => letter_data <= "0100000100000100010001000"; -- <
             when others => letter_data <= (others => '0');
         end case;
     end process;
