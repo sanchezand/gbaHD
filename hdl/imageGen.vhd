@@ -120,8 +120,7 @@ signal redTMDSEnc, greenTMDSEnc, blueTMDSEnc, redTERCEnc, greenTERCEnc, blueTERC
        redNoEnc, greenNoEnc, blueNoEnc, redNoEnc_del, greenNoEnc_del,
        blueNoEnc_del : std_logic_vector( 9 downto 0 );
 
-signal drawGBA : std_logic;
-signal drawOSD : std_logic;
+signal drawGBA, drawOSD, drawOSDBackground : std_logic;
 
 signal newFrameProcessed : std_logic;
 signal newFrameInDel : std_logic;
@@ -806,9 +805,6 @@ begin
   drawGBA <= '1' when ( countX >= gbaVideoXStart and countX < ( gbaVideoXStart + 960 ) and 
                       ( countY >= gbaVideoYStart and countY < ( gbaVideoYStart + 640 ) ) ) else '0';
   
-  drawOSD <= '1' when ( countX >= gbaVideoXStart+20 and countX < ( gbaVideoXStart + 20 + osdXMax ) and 
-                      ( countY >= gbaVideoYStart+20 and countY < ( gbaVideoYStart + 20 + osdYMax ) ) ) else '0';
-  
   hSync <= '1' when ( countXDel >= 1280 + hfrontporch ) and ( countXDel < 1280 + hfrontporch + hsyncpxl ) else '0';
   vSync <= '1' when ( countYDel < -vbackporch) else '0';
   draw <= '1' when ( countXDel < 1280 ) and ( countYDel >= 0 and countYDel < 720 ) else '0';
@@ -816,15 +812,15 @@ begin
   ctrl( 1 ) <= vSync;
   ctrl( 0 ) <= hSync;
   
-  redDat <= (others => osdPxl) when (drawOSD ='1') else
+  redDat <= (others => osdPxl) when (drawOSDBackground ='1') else
             redPxl when ( drawGBA ='1' and pxlGrid = '0' and smooth2x = '0' and smooth4x = '0' ) else 
             redSmooth when ( drawGBA ='1' and ( smooth2x = '1' or smooth4x = '1' ) ) else  
             gridRed when ( drawGBA ='1' and pxlGrid = '1' ) else borderRed;
-  greenDat <= (others => osdPxl) when (drawOSD ='1') else
+  greenDat <= (others => osdPxl) when (drawOSDBackground ='1') else
               greenPxl when ( drawGBA ='1' and pxlGrid = '0' and smooth2x = '0' and smooth4x = '0' ) else 
               greenSmooth when ( drawGBA ='1' and ( smooth2x = '1' or smooth4x = '1' ) ) else  
               gridGreen when ( drawGBA ='1' and pxlGrid = '1' ) else borderGreen;
-  blueDat <= (others => osdPxl) when (drawOSD ='1') else
+  blueDat <= (others => osdPxl) when (drawOSDBackground ='1') else
              bluePxl when ( drawGBA ='1' and pxlGrid = '0' and smooth2x = '0' and smooth4x = '0' ) else 
              blueSmooth when ( drawGBA ='1' and ( smooth2x = '1' or smooth4x = '1' ) ) else  
              gridBlue when ( drawGBA ='1' and pxlGrid = '1' ) else borderBlue;
@@ -1051,8 +1047,12 @@ begin
     b => borderBlue
   );
   
-  osdX <= countX-(gbaVideoXStart+20);
-  osdY <= countY-(gbaVideoYStart+20);
+  osdX <= countX-(gbaVideoXStart+35);
+  osdY <= countY-(gbaVideoYStart+35);
+  drawOSD <= '1' when ( countX >= gbaVideoXStart+35 and countX < ( gbaVideoXStart + 35 + osdXMax ) and 
+                      ( countY >= gbaVideoYStart+35 and countY < ( gbaVideoYStart + 35 + osdYMax ) ) ) else '0';
+  drawOSDBackground <= '1' when ( countX >= gbaVideoXStart+20 and countX < ( gbaVideoXStart + 20 + osdXMax ) and 
+                      ( countY >= gbaVideoYStart+20 and countY < ( gbaVideoYStart + 20 + osdYMax ) ) ) else '0'; 
    
   osd : entity work.osdGen( rtl )
   port map(
