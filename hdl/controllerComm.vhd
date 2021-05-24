@@ -9,33 +9,30 @@ use ieee.numeric_std.all;
 
 entity controllerComm is
   port(
-    clk : in std_logic;
-    rst : in std_logic;
-    datIn : in std_logic;
-    
-    pxlGridToggle : out std_logic
+    enable : in std_logic;
+    latch : in std_logic;
+    clk: in std_logic;
+    dataIn : in std_logic;
+    dataOut : out std_logic_vector( 5 downto 0 )
   );
 end controllerComm;
 
 architecture rtl of controllerComm is
-signal datIn_prev: std_logic;
-begin
-  
-  process( clk ) is
-  begin
-    if rising_edge( clk ) then
-      if ( rst = '1' ) then
-        pxlGridToggle <= '0';
-        datIn_prev <= '0';
-      else
-        datIn_prev <= datIn;
-        if ( datIn = '1' and datIn_prev = '0' ) then
-          pxlGridToggle <= '1';
-        else
-          pxlGridToggle <= '0';
-        end if;
-      end if;
-    end if;
-  end process;
 
+constant MAX_DATA : integer := 5; -- Amount of data in the payload-1
+signal counter : integer := 0;
+signal inputData : std_logic_vector( 5 downto 0 ) := (others => '0');
+
+begin
+    process(clk, latch, enable) is
+    begin
+        if enable='0' then
+            dataOut <= (others => '0');
+        elsif latch='1' then
+            counter <= MAX_DATA;
+        elsif falling_edge(clk) then
+            dataOut(counter) <= dataIn;
+            counter <= counter - 1;
+        end if;
+    end process;
 end rtl;

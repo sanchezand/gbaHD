@@ -54,11 +54,12 @@ entity imageGen is
     audioLIn : in std_logic;
     audioRIn : in std_logic;
     
-    pxlGrid : in std_logic;
-    brightGrid : in std_logic;
-    
-    smooth2x : in std_logic;
-    smooth4x : in std_logic;
+    osdEnable : in std_logic;
+    controller : in std_logic_vector(5 downto 0);
+    -- pxlGrid : in std_logic;
+    -- brightGrid : in std_logic;
+    -- smooth2x : in std_logic;
+    -- smooth4x : in std_logic;
     
     nextLine : out std_logic;
     curPxl : out std_logic_vector( 7 downto 0 );
@@ -86,6 +87,7 @@ signal hSync : std_logic;
 signal vSync : std_logic;
 signal ctrl : std_logic_vector( 1 downto 0 );
 signal draw : std_logic;
+signal pxlGrid, brightGrid, smooth2x, smooth4x : std_logic;
 
 signal pxlCnt : integer range 0 to 239;
 
@@ -201,6 +203,11 @@ constant clkFreq : real := 83745.07997655;
 signal statusBits : std_logic_vector( 191 downto 0 );
 
 begin
+
+  pxlGrid <= '0';
+  brightGrid <= '0';
+  smooth2x <= '0';
+  smooth4x <= '0';
 
   statusBits( 39 downto 0 ) <= x"D202004004";
   statusBits( 191 downto 40 ) <= ( others => '0' );
@@ -1049,16 +1056,17 @@ begin
   
   osdX <= countX-(gbaVideoXStart+35);
   osdY <= countY-(gbaVideoYStart+35);
-  drawOSD <= '1' when ( countX >= gbaVideoXStart+35 and countX < ( gbaVideoXStart + 35 + osdXMax ) and 
-                      ( countY >= gbaVideoYStart+35 and countY < ( gbaVideoYStart + 35 + osdYMax ) ) ) else '0';
-  drawOSDBackground <= '1' when ( countX >= gbaVideoXStart+20 and countX < ( gbaVideoXStart + 20 + osdXMax ) and 
-                      ( countY >= gbaVideoYStart+20 and countY < ( gbaVideoYStart + 20 + osdYMax ) ) ) else '0'; 
+  drawOSD <= '1' when ( osdEnable='1' and countX >= gbaVideoXStart+35 and countX < ( gbaVideoXStart + 35 + osdXMax ) and 
+              ( countY >= gbaVideoYStart+35 and countY < ( gbaVideoYStart + 35 + osdYMax ) ) ) else '0';
+  drawOSDBackground <= '1' when ( osdEnable='1' and countX >= gbaVideoXStart+20 and countX < ( gbaVideoXStart + 20 + osdXMax ) and 
+              ( countY >= gbaVideoYStart+20 and countY < ( gbaVideoYStart + 20 + osdYMax ) ) ) else '0'; 
    
   osd : entity work.osdGen( rtl )
   port map(
     drawOSD => drawOSD,
     pixelX => osdX,
     pixelY => osdY,
+    controller => controller,
     gridActive => pxlGrid,
     smooth2x => smooth2x,
     smooth4x => smooth4x,

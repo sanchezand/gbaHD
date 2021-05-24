@@ -28,9 +28,22 @@ set_property PACKAGE_PIN P5 [get_ports gbaclk]
 # FPGA IO9
 set_property PACKAGE_PIN E11 [get_ports dclk]
 
+# FPGA AR D0
+set_property PACKAGE_PIN A12 [get_ports controller_data]
+set_property IOSTANDARD LVCMOS33 [get_ports controller_data]
+
+# FPGA AR D1
+set_property PACKAGE_PIN C12 [get_ports controller_clk]
+set_property IOSTANDARD LVCMOS33 [get_ports controller_clk]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets controller_clk_IBUF]
+
 # FPGA AR D4
-set_property PACKAGE_PIN A5 [get_ports controllerMCUIn]
-set_property IOSTANDARD LVCMOS33 [get_ports controllerMCUIn]
+set_property PACKAGE_PIN A5 [get_ports osdEnable]
+set_property IOSTANDARD LVCMOS33 [get_ports osdEnable]
+
+# FPGA AR D12
+set_property PACKAGE_PIN H1 [get_ports controller_latch]
+set_property IOSTANDARD LVCMOS33 [get_ports controller_latch]
 
 # FPGA AR D5
 set_property PACKAGE_PIN B5 [get_ports {bluePxl[1]}]

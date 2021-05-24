@@ -18,8 +18,11 @@ entity topUnit4x is
     bluePxl : in std_logic_vector( 4 downto 0 );
     vsync : in std_logic;
     dclk : in std_logic;
-    
-    controllerMCUIn : in std_logic;
+        
+    osdEnable : in std_logic;
+    controller_clk : in std_logic;
+    controller_latch : in std_logic;
+    controller_data : in std_logic;
     
     audioLIn : in std_logic;
     audioRIn : in std_logic;
@@ -74,6 +77,8 @@ signal blueSHIFT2 : std_logic;
 
 signal gbaclk_int : std_logic;
 signal gbaclk2x : std_logic;
+
+signal input_data : std_logic_vector( 5 downto 0 );
 
 -- Pixel grid config.
 signal doPxlGrid, bgrid, pxlGridToggle, smooth2x, smooth4x : std_logic;
@@ -281,69 +286,27 @@ begin
       newFrameIn => newFrameBuff,
       audioLIn => audioLIn,
       audioRIn => audioRIn,
-      pxlGrid => doPxlGrid,
-      brightGrid => bgrid,
-      smooth2x => smooth2x,
-      smooth4x => smooth4x,
+      
       nextLine => nextLineRead,
       curPxl => pxlCntReadToCache,
       redEnc => redEnc,
       greenEnc => greenEnc,
-      blueEnc => blueEnc
+      blueEnc => blueEnc,
+      
+      osdEnable => osdEnable,
+      controller => input_data
     );
     
-    -- Controller communication and pixel grid config.
+    -- Controller communication.
     controllerComm_inst : entity work.controllerComm( rtl )
       port map(
-        clk => pxlClk,
-        rst => rst,
-        datIn => controllerMCUIn,
-        pxlGridToggle => pxlGridToggle
+        enable => osdEnable,
+        latch => controller_latch,
+        clk => controller_clk,
+        dataIn => controller_data,
+        dataOut => input_data
     );
       
-    pxlGridConfig : process( pxlClk ) is
-    begin
-      if rising_edge( pxlClk ) then
-        if ( rst = '1' ) then
-          doPxlGrid <= '0';
-          bgrid <= '0';
-          smooth2x <= '0';
-          smooth4x <= '0';
-        else
-          if ( pxlGridToggle = '1' ) then
-            if ( smooth2x = '0' and smooth4x = '0' and doPxlGrid = '0' ) then
-              smooth2x <= '1';
-              smooth4x <= '0';
-              doPxlGrid <= '0';
-              bgrid <= '0';
-            elsif ( smooth2x = '1' and smooth4x = '0' and doPxlGrid = '0' ) then
-              smooth2x <= '0';
-              smooth4x <= '1';
-              doPxlGrid <= '0';
-              bgrid <= '0';
-            elsif ( smooth2x = '0' and smooth4x = '1' and doPxlGrid = '0' ) then
-              smooth2x <= '0';
-              smooth4x <= '0';
-              doPxlGrid <= '1';
-              bgrid <= '0';
-            elsif ( bgrid = '0' ) then
-              smooth2x <= '0';
-              smooth4x <= '0';
-              doPxlGrid <= '1';
-              bgrid <= '1';
-            else
-              smooth2x <= '0';
-              smooth4x <= '0';
-              doPxlGrid <= '0';
-              bgrid <= '0';
-            end if;
-          end if;
-        end if;
-      end if;
-    end process;
-      
-      
-    
     -- Serialize.
     redSerM : OSERDESE2
       generic map(
