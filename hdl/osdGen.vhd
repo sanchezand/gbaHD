@@ -1,5 +1,5 @@
 -----------------------------------------------------------------------
--- Title: Grid generator
+-- Title: OSD generator
 -- Author: sanchezand
 -----------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ entity osdGen is
        controllerUpdate : in std_logic;
        controller : in std_logic_vector(5 downto 0);
        gridActive : out STD_LOGIC;
+       gridBright : out STD_LOGIC;
        smooth2x : out STD_LOGIC;
        smooth4x : out STD_LOGIC;
        nextPxl : out STD_LOGIC
@@ -39,21 +40,34 @@ signal selected_line: integer range 0 to MAX_LINES := 1;
 signal current_letter, current_line_x, current_line_y, current_line_y_temp : integer;
 signal osdX, osdY : integer range 0 to 80;
 signal line_letter : integer range 0 to 40;
-signal alphabet_pixel, current_line_selected, next_line_selected, drawLetters : std_logic;
+signal alphabet_pixel, current_line_selected, next_line_selected, drawLetters, credits : std_logic;
 
 signal gbahd_logo : t_line :=           (07, 02, 01, 08, 04, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00);
-signal osd_pixel_grid : t_line :=       (16, 09, 24, 05, 12, 00, 07, 18, 09, 04, 00, 00, 00, 00, 00, 37);
+signal osd_pixel_grid : t_line :=       (16, 09, 24, 05, 12, 00, 07, 18, 09, 04, 00, 00, 40, 00, 00, 39);
 signal osd_smoothing : t_line :=        (19, 13, 15, 15, 20, 08, 09, 14, 07, 00, 00, 00, 40, 00, 00, 39);
 signal osd_credits : t_line :=          (03, 18, 05, 04, 09, 20, 19, 00, 00, 00, 00, 00, 00, 00, 00, 39);
 
-signal opt_grid, opt_s2x, opt_s4x : std_logic;
+signal credits_return : t_line :=       (40, 00, 02, 01, 03, 11, 00, 00, 00, 00, 00, 00, 00, 00, 00, 00);
+signal credits_everything : t_line :=   (01, 12, 12, 39, 00, 26, 23, 05, 14, 05, 18, 07, 25, 00, 00, 00);
+signal credits_osd : t_line :=          (15, 19, 04, 39, 00, 18, 01, 09, 26, 21, 00, 00, 00, 00, 00, 00);
+
+signal opt_grid, opt_grid_bright, opt_s2x, opt_s4x : std_logic;
 
 begin
     drawLetters <= '1' when pixelX > 2 else '0';
     osdX <= (pixelX-2) / FONT_SCALE when drawLetters='1' else 0;
     osdY <= pixelY / FONT_SCALE;
     
-    osd_pixel_grid(15) <= 38 when opt_grid='1' else 37;
+    -- osd_pixel_grid(15) <= 38 when opt_grid='1' else 37;
+    osd_pixel_grid(13) <= 
+        04 when opt_grid='1' and opt_grid_bright='0' else
+        02 when opt_grid='1' and opt_grid_bright='1' else
+        14;
+    osd_pixel_grid(14) <= 
+        11 when opt_grid='1' and opt_grid_bright='0' else
+        20 when opt_grid='1' and opt_grid_bright='1' else
+        15;
+    
     osd_smoothing(13) <= 
         29 when opt_s2x='1' and opt_s4x='0' else
         31 when opt_s2x='0' and opt_s4x='1' else
@@ -66,11 +80,14 @@ begin
     line_letter <= osdX / (FONT_SIZE+FONT_SEPARATION);
     current_line_x <= osdX mod (FONT_SIZE+FONT_SEPARATION);
     current_letter <= 
-        0 when (drawLetters='0' or current_line_y=0) else
-        gbahd_logo(line_letter) when current_line=0 
-        else osd_pixel_grid(line_letter) when current_line=1 
-        else osd_smoothing(line_letter) when current_line=2
-        else osd_credits(line_letter) when current_line=3
+        0 when (drawLetters='0' or current_line_y=0)
+        else gbahd_logo(line_letter) when current_line=0
+        else osd_pixel_grid(line_letter) when current_line=1 and credits='0'
+        else osd_smoothing(line_letter) when current_line=2 and credits='0'
+        else osd_credits(line_letter) when current_line=3 and credits='0'
+        else credits_return(line_letter) when current_line=1 and credits='1'
+        else credits_everything(line_letter) when current_line=2 and credits='1'
+        else credits_osd(line_letter) when current_line=3 and credits='1'
         else 0;
     
     current_line_y_temp <= 0 when current_line_y=0 else current_line_y-1;
@@ -94,7 +111,7 @@ begin
      process(controllerUpdate) is
      begin
         if(rising_edge(controllerUpdate)) then
-            if(controller/=prev_controller) then
+            if(drawOSD='1' and controller/=prev_controller) then
                 if(controller(0)='1' and prev_controller(0)='0') then -- UP
                     if(selected_line>1) then
                         selected_line <= selected_line - 1;
@@ -104,9 +121,22 @@ begin
                         selected_line <= selected_line + 1;
                     end if;
                 elsif(controller(4)='1' and prev_controller(4)='0') then -- A
-                    if(selected_line=1) then
-                        opt_grid <= not opt_grid;
-                    elsif(selected_line=2) then
+                    if(selected_line=1 and credits='0') then -- PIXEL GRID
+                        opt_s2x <= '0';
+                        opt_s4x <= '0';
+                        if(opt_grid='0' and opt_grid_bright='0') then
+                            opt_grid <= '1';
+                            opt_grid_bright <= '0';
+                        elsif(opt_grid='1' and opt_grid_bright='0') then
+                            opt_grid <= '1';
+                            opt_grid_bright <= '1';
+                        elsif(opt_grid='1' and opt_grid_bright='1') then
+                            opt_grid <= '0';
+                            opt_grid_bright <= '0';
+                        end if;
+                    elsif(selected_line=2 and credits='0') then -- SMOOTHING
+                        opt_grid <= '0';
+                        opt_grid_bright <= '0';
                         if(opt_s2x='0' and opt_s4x='0') then
                             opt_s2x <= '1';
                             opt_s4x <= '0';
@@ -117,6 +147,12 @@ begin
                             opt_s2x <= '0';
                             opt_s4x <= '0';
                         end if;
+                    elsif(selected_line=3 and credits='0') then -- CREDITS MENU OPEN
+                        credits <= '1';
+                        selected_line <= 1;
+                    elsif(selected_line=1 and credits='1') then -- CREDITS MENU EXIT
+                        credits <= '0';
+                        selected_line <= 1;
                     end if;
                 end if;
                 prev_controller <= controller;
@@ -125,6 +161,7 @@ begin
      end process;
      
      gridActive <= opt_grid;
+     gridBright <= opt_grid_bright;
      smooth2x <= opt_s2x;
      smooth4x <= opt_s4x;
 end rtl;

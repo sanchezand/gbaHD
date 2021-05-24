@@ -204,12 +204,6 @@ constant clkFreq : real := 83745.07997655;
 signal statusBits : std_logic_vector( 191 downto 0 );
 
 begin
-
-  pxlGrid <= '0';
-  brightGrid <= '0';
-  smooth2x <= '0';
-  smooth4x <= '0';
-
   statusBits( 39 downto 0 ) <= x"D202004004";
   statusBits( 191 downto 40 ) <= ( others => '0' );
   
@@ -1070,6 +1064,7 @@ begin
     controllerUpdate => controllerUpdate,
     controller => controller,
     gridActive => pxlGrid,
+    gridBright => brightGrid,
     smooth2x => smooth2x,
     smooth4x => smooth4x,
     nextPxl => osdPxl
