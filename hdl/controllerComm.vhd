@@ -13,6 +13,7 @@ entity controllerComm is
     latch : in std_logic;
     clk: in std_logic;
     dataIn : in std_logic;
+    dataUpdate : out std_logic;
     dataOut : out std_logic_vector( 5 downto 0 )
   );
 end controllerComm;
@@ -20,10 +21,10 @@ end controllerComm;
 architecture rtl of controllerComm is
 
 constant MAX_DATA : integer := 5; -- Amount of data in the payload-1
-signal counter : integer := 0;
-signal inputData : std_logic_vector( 5 downto 0 ) := (others => '0');
+signal counter : integer := MAX_DATA;
 
 begin
+    dataUpdate <= '1' when counter=0 else '0';
     process(clk, latch, enable) is
     begin
         if enable='0' then

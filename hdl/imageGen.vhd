@@ -55,6 +55,7 @@ entity imageGen is
     audioRIn : in std_logic;
     
     osdEnable : in std_logic;
+    controllerUpdate : in std_logic;
     controller : in std_logic_vector(5 downto 0);
     -- pxlGrid : in std_logic;
     -- brightGrid : in std_logic;
@@ -1066,6 +1067,7 @@ begin
     drawOSD => drawOSD,
     pixelX => osdX,
     pixelY => osdY,
+    controllerUpdate => controllerUpdate,
     controller => controller,
     gridActive => pxlGrid,
     smooth2x => smooth2x,

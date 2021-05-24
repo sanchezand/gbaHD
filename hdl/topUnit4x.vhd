@@ -78,7 +78,8 @@ signal blueSHIFT2 : std_logic;
 signal gbaclk_int : std_logic;
 signal gbaclk2x : std_logic;
 
-signal input_data : std_logic_vector( 5 downto 0 );
+signal controller : std_logic_vector( 5 downto 0 );
+signal controllerUpdate : std_logic;
 
 -- Pixel grid config.
 signal doPxlGrid, bgrid, pxlGridToggle, smooth2x, smooth4x : std_logic;
@@ -294,7 +295,8 @@ begin
       blueEnc => blueEnc,
       
       osdEnable => osdEnable,
-      controller => input_data
+      controller => controller,
+      controllerUpdate => controllerUpdate
     );
     
     -- Controller communication.
@@ -304,7 +306,8 @@ begin
         latch => controller_latch,
         clk => controller_clk,
         dataIn => controller_data,
-        dataOut => input_data
+        dataUpdate => controllerUpdate,
+        dataOut => controller
     );
       
     -- Serialize.
